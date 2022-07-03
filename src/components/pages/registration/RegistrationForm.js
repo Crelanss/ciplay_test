@@ -1,29 +1,11 @@
-import React, {useContext, useState} from 'react'
+import React, {useState} from 'react'
 import styled from 'styled-components'
-import {observer} from 'mobx-react'
 import {useNavigate} from 'react-router-dom'
-import {toJS} from 'mobx'
+import {useDispatch, useSelector} from 'react-redux'
 
-import {Context} from '../index'
-import {LOGIN_ROUTE} from '../utils/consts'
+import {LOGIN_ROUTE} from '../../../utils/consts'
+import {createUser, setIsLoading} from '../../../reduxStore/slices/appSlice'
 
-
-const Container = styled.div`
-  margin-top: 100px;
-  margin-left: auto;
-  margin-right: auto;
-  height: 400px;
-  width: 300px;
-  border: 1px solid black;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  
-  span {
-    color: red;
-    font-size: 10px;
-  }
-`
 
 const Input = styled.input`
   width: 90%;
@@ -47,12 +29,19 @@ const RegisterButton = styled.div`
   }
 `
 
-const Registration = observer(() => {
+const RegistrationForm = () => {
     const navigate = useNavigate()
-    const {inputs, user} = useContext(Context)
+    const dispatch = useDispatch()
+    const users = useSelector(state => state.app.users)
+    const isLoading = useSelector(state => state.app.isLoading)
     const [emailValid, setEmailValid] = useState('')
     const [passwordValid, setPasswordValid] = useState('')
     const [repeatPasswordValid, setRepeatPasswordValid] = useState('')
+    const [inputs, setInputs] = useState({
+        email: '',
+        password: '',
+        repeatPassword: ''
+    })
 
     const validate = () => {
         let emailCheck
@@ -60,63 +49,75 @@ const Registration = observer(() => {
         let repeatPasswordCheck
         let isEmailExists = false
 
-        user.setIsLoading(true)
+        dispatch(setIsLoading(true))
 
-        setTimeout( () => {
-            emailCheck = inputs.registerEmail.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
-            user.users.forEach(u => {
+        setTimeout(() => {
+            emailCheck = inputs.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
+            users.forEach(u => {
                 if (u.email === inputs.registerEmail) {
                     isEmailExists = true
                 }
             })
             setEmailValid(emailCheck ? isEmailExists ? 'Эта почта занята' : '' : 'Неверно введена почта')
 
-            passwordCheck = inputs.registerPassword.match(/^(?=.*[A-Z])(.{4,10})$/)
+            passwordCheck = inputs.password.match(/^(?=.*[A-Z])(.{4,10})$/)
             setPasswordValid(passwordCheck ? '' : 'Неверный формат пароля')
 
-            repeatPasswordCheck = inputs.registerPassword === inputs.registerRepeatPassword
+            repeatPasswordCheck = inputs.password === inputs.repeatPassword
             setRepeatPasswordValid(repeatPasswordCheck ? '' : 'Пароли не совпадают')
 
             if (emailCheck && passwordCheck && repeatPasswordCheck && !isEmailExists) {
-                user.setNewUser(toJS(inputs.registerEmail), toJS(inputs.registerPassword))
+                dispatch(createUser({
+                    email: inputs.email,
+                    password: inputs.password
+                }))
                 alert('Пользователь зарегистрирован')
                 navigate(LOGIN_ROUTE)
             }
 
-            user.setIsLoading(false)
+            dispatch(setIsLoading(false))
         }, 1000)
     }
 
     return (
-        <Container>
+        <>
             <Input
-                placeholder='Email'
-                name='email'
-                value={inputs.registerEmail}
+                placeholder="Email"
+                name="email"
+                value={inputs.email}
                 onChange={e => {
-                    inputs.setRegisterEmail(e.target.value)
+                    setInputs({
+                        ...inputs,
+                        email: e.target.value
+                    })
                     setEmailValid('')
                 }}
             />
             <span>{emailValid}</span>
             <Input
-                placeholder='Password'
-                name='password'
-                type='password'
-                value={inputs.registerPassword}
+                placeholder="Password"
+                name="password"
+                type="password"
+                value={inputs.password}
                 onChange={e => {
-                    inputs.setRegisterPassword(e.target.value)
+                    setInputs({
+                        ...inputs,
+                        password: e.target.value,
+                    })
                     setPasswordValid('')
                 }}
             />
             <span>{passwordValid}</span>
             <Input
-                placeholder='Repeat password'
-                name='repeat_password'
-                type='password'
-                value={inputs.registerRepeatPassword}
+                placeholder="Repeat password"
+                name="repeat_password"
+                type="password"
+                value={inputs.repeatPassword}
                 onChange={e => {
-                    inputs.setRegisterRepeatPassword(e.target.value)
+                    setInputs({
+                        ...inputs,
+                        repeatPassword: e.target.value,
+                    })
                     setRepeatPasswordValid('')
                 }}
             />
@@ -124,9 +125,9 @@ const Registration = observer(() => {
             <RegisterButton onClick={() => validate()}>
                 <span>Зарегистрироваться!</span>
             </RegisterButton>
-            {user.isLoading && <>Загрузка....</>}
-        </Container>
+            {isLoading && <>Загрузка....</>}
+        </>
     )
-})
+}
 
-export default Registration;
+export default RegistrationForm

@@ -1,12 +1,12 @@
-import React, {useContext} from 'react'
+import React from 'react'
 import {useRoutes} from 'react-router-dom'
+import {useSelector} from 'react-redux'
 
-import {Context} from '../index'
-import {authRoutes, noneAuthRoutes} from '../routes'
+import {authRoutes, noneAuthRoutes} from '../../routes'
 
 
 const AppRouter = () => {
-    const {user} = useContext(Context)
+    const isAuth = useSelector(state => state.app.isAuth)
 
     const auth_routes = useRoutes(authRoutes.map(({path, Component}) => {
         return {
@@ -24,7 +24,7 @@ const AppRouter = () => {
 
     return (
         <>
-            {user.isAuth ? auth_routes : none_auth_routes}
+            {isAuth ? auth_routes : none_auth_routes}
         </>
     );
 };

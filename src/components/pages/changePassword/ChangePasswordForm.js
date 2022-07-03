@@ -1,28 +1,11 @@
-import React, {useContext, useState} from 'react'
+import React, {useState} from 'react'
 import styled from 'styled-components'
-import {observer} from 'mobx-react'
 import {useNavigate} from 'react-router-dom'
+import {useDispatch, useSelector} from 'react-redux'
 
-import {Context} from '../index'
-import {LOGIN_ROUTE} from '../utils/consts'
+import {LOGIN_ROUTE} from '../../../utils/consts'
+import {setUserCredentials, setIsLoading, setIsAuth, changePassword} from '../../../reduxStore/slices/appSlice'
 
-
-const Container = styled.div`
-  margin-top: 100px;
-  margin-left: auto;
-  margin-right: auto;
-  height: 400px;
-  width: 300px;
-  border: 1px solid black;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  span {
-    color: red;
-    font-size: 10px;
-  }
-`
 
 const Input = styled.input`
   width: 90%;
@@ -46,12 +29,20 @@ const ChangePasswordButton = styled.div`
   }
 `
 
-const ChangePassword = observer(() => {
-    const {user, inputs} = useContext(Context)
+const ChangePasswordForm = () => {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
+    const isLoading = useSelector(state => state.app.isLoading)
+    const userCredentials = useSelector(state => state.app.userCredentials)
+    const users = useSelector(state => state.app.users)
     const [oldPasswordValid, setOldPasswordValid] = useState('')
     const [newPasswordValid, setNewPasswordValid] = useState('')
     const [repeatPasswordValid, setRepeatPasswordValid] = useState('')
+    const [inputs, setInputs] = useState({
+        oldPassword: '',
+        newPassword: '',
+        repeatPassword: ''
+    })
 
     const validate = () => {
         let oldPasswordCheck
@@ -59,48 +50,54 @@ const ChangePassword = observer(() => {
         let repeatPasswordCheck
         let passwordsEqual
 
-        user.setIsLoading(true)
+        dispatch(setIsLoading(true))
 
         setTimeout(() => {
-            passwordsEqual = user.userCredentials.password === inputs.changePasswordOldPassword
+            passwordsEqual = userCredentials.password === inputs.oldPassword
 
-            oldPasswordCheck = inputs.changePasswordOldPassword.match(/^(?=.*[A-Z])(.{4,10})$/)
+            oldPasswordCheck = inputs.oldPassword.match(/^(?=.*[A-Z])(.{4,10})$/)
             setOldPasswordValid(oldPasswordCheck ? passwordsEqual ? '' : 'Пароли не совпадают' : 'Неверный формат пароля')
 
-            newPasswordCheck = inputs.changePasswordNewPassword.match(/^(?=.*[A-Z])(.{4,10})$/)
+            newPasswordCheck = inputs.newPassword.match(/^(?=.*[A-Z])(.{4,10})$/)
             setNewPasswordValid(newPasswordCheck ? '' : 'Неверный формат пароля')
 
-            repeatPasswordCheck = inputs.changePasswordNewPassword === inputs.changePasswordRepeatPassword
+            repeatPasswordCheck = inputs.newPassword === inputs.repeatPassword
             setRepeatPasswordValid(repeatPasswordCheck ? '' : 'Пароли не совпадают')
 
             if(newPasswordCheck && repeatPasswordCheck && passwordsEqual) {
-                user.users.forEach(u => {
-                    if(u.email === user.userCredentials.email) {
-                        u.password = inputs.changePasswordNewPassword
-                        user.setIsAuth(false)
-                        user.setUserCredentials({
+                users.forEach(u => {
+                    if(u.email === userCredentials.email) {
+                        dispatch(changePassword({
+                            email: u.email,
+                            password: inputs.newPassword
+                        }))
+                        dispatch(setIsAuth(false))
+                        dispatch(setUserCredentials({
                             email: '',
                             password: ''
-                        })
+                        }))
                         navigate(LOGIN_ROUTE)
                         alert('Пароль сменен, войдите в систему заново')
                     }
                 })
             }
 
-            user.setIsLoading(false)
+            dispatch(setIsLoading(false))
         }, 1000)
 
     }
 
     return (
-        <Container>
+        <>
             <Input
                 placeholder='Old password'
-                value={inputs.changePasswordOldPassword}
+                value={inputs.oldPassword}
                 type='password'
                 onChange={e => {
-                    inputs.setChangePasswordOldPassword(e.target.value)
+                    setInputs({
+                        ...inputs,
+                        oldPassword: e.target.value
+                    })
                     setOldPasswordValid('')
                 }}
             />
@@ -108,9 +105,12 @@ const ChangePassword = observer(() => {
             <Input
                 placeholder='New password'
                 type='password'
-                value={inputs.changePasswordNewPassword}
+                value={inputs.newPassword}
                 onChange={e => {
-                    inputs.setChangePasswordNewPassword(e.target.value)
+                    setInputs({
+                        ...inputs,
+                        newPassword: e.target.value
+                    })
                     setNewPasswordValid('')
                 }}
             />
@@ -118,17 +118,20 @@ const ChangePassword = observer(() => {
             <Input
                 placeholder='Repeat password'
                 type='password'
-                value={inputs.changePasswordRepeatPassword}
+                value={inputs.repeatPassword}
                 onChange={e => {
-                    inputs.setChangePasswordRepeatPassword(e.target.value)
+                    setInputs({
+                        ...inputs,
+                        repeatPassword: e.target.value
+                    })
                     setRepeatPasswordValid('')
                 }}
             />
             <span>{repeatPasswordValid}</span>
             <ChangePasswordButton onClick={() => {validate()}}>Сменить пароль!</ChangePasswordButton>
-            {user.isLoading && <>Загрузка...</>}
-        </Container>
+            {isLoading && <>Загрузка...</>}
+        </>
     )
-})
+}
 
-export default ChangePassword;
+export default ChangePasswordForm;
