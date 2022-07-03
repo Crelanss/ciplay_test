@@ -1,9 +1,10 @@
-import React, {useContext, useState} from 'react'
+import React, {useState} from 'react'
 import styled from 'styled-components'
 import {useNavigate} from 'react-router-dom'
+import {useDispatch, useSelector} from 'react-redux'
 
-import {Context} from '../index'
-import {CHANGE_PASSWORD_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE} from '../utils/consts'
+import {CHANGE_PASSWORD_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE} from '../../utils/consts'
+import {setUserCredentials, setIsAuth} from '../../reduxStore/slices/appSlice'
 
 
 const Container = styled.div`
@@ -79,29 +80,30 @@ const ExitButton = styled.div`
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false)
-    const {user} = useContext(Context)
+    const dispatch = useDispatch()
+    const isAuth = useSelector(state => state.app.isAuth)
     const navigate = useNavigate()
 
     const exitHandler = () => {
-        user.setUserCredentials({
+        dispatch(setUserCredentials({
             email: '',
             password: ''
-        })
-        user.setIsAuth(false)
+        }))
+        dispatch(setIsAuth(false))
         navigate(REGISTRATION_ROUTE)
     }
 
     return (
         <Container>
-            {user.isAuth && <ExitButton onClick={() => {exitHandler()}}>Выйти</ExitButton>}
+            {isAuth && <ExitButton onClick={() => {exitHandler()}}>Выйти</ExitButton>}
             <NavButton onClick={() => {setIsOpen(!isOpen)}}>
                 <span>Навигация</span>
             </NavButton>
             <Menu isOpen={isOpen}>
                 <ul>
-                    {!user.isAuth && <li onClick={() => {navigate(LOGIN_ROUTE)}}>Логин</li>}
-                    {!user.isAuth && <li onClick={() => {navigate(REGISTRATION_ROUTE)}}>Регистрация</li>}
-                    {user.isAuth && <li onClick={() => {navigate(CHANGE_PASSWORD_ROUTE)}}>Смена пароля</li>}
+                    {!isAuth && <li onClick={() => {navigate(LOGIN_ROUTE)}}>Логин</li>}
+                    {!isAuth && <li onClick={() => {navigate(REGISTRATION_ROUTE)}}>Регистрация</li>}
+                    {isAuth && <li onClick={() => {navigate(CHANGE_PASSWORD_ROUTE)}}>Смена пароля</li>}
                 </ul>
             </Menu>
         </Container>

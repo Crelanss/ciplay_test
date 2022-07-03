@@ -1,6 +1,6 @@
-import Login from './pages/Login'
-import Registration from './pages/Registration'
-import ChangePassword from './pages/ChangePassword'
+import ChangePasswordPage from './components/pages/changePassword/ChangePasswordPage'
+import RegistrationPage from './components/pages/registration/RegistrationPage'
+import LoginPage from './components/pages/login/LoginPage'
 import {
     LOGIN_ROUTE,
     REGISTRATION_ROUTE,
@@ -8,14 +8,15 @@ import {
     WRONG_PAGE
 } from './utils/consts'
 
+
 export const noneAuthRoutes = [
     {
         path: LOGIN_ROUTE,
-        Component: <Login/>
+        Component: <LoginPage/>
     },
     {
         path: REGISTRATION_ROUTE,
-        Component: <Registration/>
+        Component: <RegistrationPage/>
     }
     ,
     {
@@ -27,7 +28,7 @@ export const noneAuthRoutes = [
 export const authRoutes = [
     {
         path: CHANGE_PASSWORD_ROUTE,
-        Component: <ChangePassword/>
+        Component: <ChangePasswordPage/>
     },
     {
         path: WRONG_PAGE,
