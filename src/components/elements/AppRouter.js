@@ -26,7 +26,7 @@ const AppRouter = () => {
         <>
             {isAuth ? auth_routes : none_auth_routes}
         </>
-    );
-};
+    )
+}
 
-export default AppRouter;
+export default AppRouter

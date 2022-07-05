@@ -1,10 +1,10 @@
 import React, {useState} from 'react'
 import styled from 'styled-components'
 import {useNavigate} from 'react-router-dom'
-import {useDispatch, useSelector} from 'react-redux'
+import {useDispatch} from 'react-redux'
 
 import {CHANGE_PASSWORD_ROUTE} from '../../../utils/consts'
-import {setUserCredentials, setIsLoading, setIsAuth} from '../../../reduxStore/slices/appSlice'
+import {loginUser} from '../../../reduxStore/slices/appSlice'
 
 
 const Input = styled.input`
@@ -22,7 +22,7 @@ const LoginButton = styled.div`
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  
+
   span {
     color: white;
     font-size: 16px;
@@ -32,9 +32,6 @@ const LoginButton = styled.div`
 const LoginForm = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    const users = useSelector(state => state.app.users)
-    const isAuth = useSelector(state => state.app.isAuth)
-    const isLoading = useSelector(state => state.app.isLoading)
     const [emailValid, setEmailValid] = useState('')
     const [passwordValid, setPasswordValid] = useState('')
     const [inputs, setInputs] = useState({
@@ -43,50 +40,36 @@ const LoginForm = () => {
     })
 
     const validate = () => {
-        console.log(users)
         let emailCheck
         let passwordCheck
-        let passwordCorrect = false
-        let isEmailExists = false
 
-        dispatch(setIsLoading(true))
+        emailCheck = inputs.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
 
-        setTimeout(() => {
-            emailCheck = inputs.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
-            users.forEach(u => {
-                if (u.email === inputs.email) {
-                    isEmailExists = true
-                    console.log(isEmailExists)
-                    if(u.password === inputs.password) {
-                        passwordCorrect = true
+        setEmailValid(emailCheck ? '' : 'Неверный формат почти')
+
+        passwordCheck = inputs.password.match(/^(?=.*[A-Z])(.{4,10})$/)
+        setPasswordValid(passwordCheck ? '' : 'Неверный формат пароля')
+
+        if (emailCheck && passwordCheck) {
+            dispatch(loginUser({
+                email: inputs.email,
+                password: inputs.password
+            }))
+                .unwrap()
+                .then(
+                    () => {
+                        navigate(CHANGE_PASSWORD_ROUTE)
+                    },
+                    () => {
                     }
-                }
-            })
-            setEmailValid(emailCheck ? isEmailExists ? '' : 'Пользователя с такой почтой не существует' : 'Неверно введена почта')
-
-            passwordCheck = inputs.password.match(/^(?=.*[A-Z])(.{4,10})$/)
-            setPasswordValid(passwordCheck ? passwordCorrect ? '' : 'Неверно введен пароль' : 'Неверный формат пароля')
-
-            if(passwordCorrect) {
-                dispatch(setUserCredentials({
-                    email: inputs.email,
-                    password: inputs.password
-                }))
-                dispatch(setIsAuth(true))
-                alert('Успешная авторизация')
-                navigate(CHANGE_PASSWORD_ROUTE)
-                console.log(isAuth)
-            }
-
-            dispatch(setIsLoading(false))
-        }, 1000)
-
+                )
+        }
     }
 
     return (
         <>
             <Input
-                placeholder='Email'
+                placeholder="Email"
                 value={inputs.email}
                 onChange={e => {
                     setInputs({
@@ -98,8 +81,8 @@ const LoginForm = () => {
             />
             <span>{emailValid}</span>
             <Input
-                placeholder='Password'
-                type='password'
+                placeholder="Password"
+                type="password"
                 value={inputs.password}
                 onChange={e => {
                     setInputs({
@@ -110,10 +93,11 @@ const LoginForm = () => {
                 }}
             />
             <span>{passwordValid}</span>
-            <LoginButton onClick={() => {validate()}}>Войти</LoginButton>
-            {isLoading && <>Загрузка...</>}
+            <LoginButton onClick={() => {
+                validate()
+            }}>Войти</LoginButton>
         </>
     )
 }
 
-export default LoginForm;
+export default LoginForm

@@ -1,10 +1,10 @@
 import React, {useState} from 'react'
 import styled from 'styled-components'
 import {useNavigate} from 'react-router-dom'
-import {useDispatch, useSelector} from 'react-redux'
+import {useDispatch} from 'react-redux'
 
 import {LOGIN_ROUTE} from '../../../utils/consts'
-import {createUser, setIsLoading} from '../../../reduxStore/slices/appSlice'
+import {registerUser} from '../../../reduxStore/slices/appSlice'
 
 
 const Input = styled.input`
@@ -32,8 +32,6 @@ const RegisterButton = styled.div`
 const RegistrationForm = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
-    const users = useSelector(state => state.app.users)
-    const isLoading = useSelector(state => state.app.isLoading)
     const [emailValid, setEmailValid] = useState('')
     const [passwordValid, setPasswordValid] = useState('')
     const [repeatPasswordValid, setRepeatPasswordValid] = useState('')
@@ -47,36 +45,29 @@ const RegistrationForm = () => {
         let emailCheck
         let passwordCheck
         let repeatPasswordCheck
-        let isEmailExists = false
 
-        dispatch(setIsLoading(true))
+        emailCheck = inputs.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
 
-        setTimeout(() => {
-            emailCheck = inputs.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)
-            users.forEach(u => {
-                if (u.email === inputs.registerEmail) {
-                    isEmailExists = true
-                }
-            })
-            setEmailValid(emailCheck ? isEmailExists ? 'Эта почта занята' : '' : 'Неверно введена почта')
+        setEmailValid(emailCheck ? '' : 'Неверный формат почты')
 
-            passwordCheck = inputs.password.match(/^(?=.*[A-Z])(.{4,10})$/)
-            setPasswordValid(passwordCheck ? '' : 'Неверный формат пароля')
+        passwordCheck = inputs.password.match(/^(?=.*[A-Z])(.{4,10})$/)
+        setPasswordValid(passwordCheck ? '' : 'Неверный формат пароля')
 
-            repeatPasswordCheck = inputs.password === inputs.repeatPassword
-            setRepeatPasswordValid(repeatPasswordCheck ? '' : 'Пароли не совпадают')
+        repeatPasswordCheck = inputs.password === inputs.repeatPassword
+        setRepeatPasswordValid(repeatPasswordCheck ? '' : 'Пароли не совпадают')
 
-            if (emailCheck && passwordCheck && repeatPasswordCheck && !isEmailExists) {
-                dispatch(createUser({
-                    email: inputs.email,
-                    password: inputs.password
-                }))
-                alert('Пользователь зарегистрирован')
-                navigate(LOGIN_ROUTE)
-            }
-
-            dispatch(setIsLoading(false))
-        }, 1000)
+        if (emailCheck && passwordCheck && repeatPasswordCheck) {
+            dispatch(registerUser({
+                email: inputs.email,
+                password: inputs.password
+            }))
+                .unwrap()
+                .then(
+                    () => navigate(LOGIN_ROUTE),
+                    () => {
+                    }
+                )
+        }
     }
 
     return (
@@ -125,7 +116,6 @@ const RegistrationForm = () => {
             <RegisterButton onClick={() => validate()}>
                 <span>Зарегистрироваться!</span>
             </RegisterButton>
-            {isLoading && <>Загрузка....</>}
         </>
     )
 }

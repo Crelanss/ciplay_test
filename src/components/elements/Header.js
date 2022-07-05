@@ -30,7 +30,7 @@ const NavButton = styled.div`
   padding-left: 3px;
   padding-right: 3px;
   cursor: pointer;
-  
+
   &:hover {
     span {
       color: white;
@@ -47,11 +47,12 @@ const Menu = styled.div`
   display: ${props => props.isOpen ? 'flex' : 'none'};
   background: gray;
   border: 1px solid black;
-  
+
   ul {
     padding: 0;
+
     li {
-      list-style: none; 
+      list-style: none;
       margin-top: 10px;
       border-bottom: 1px solid white;
       cursor: pointer;
@@ -95,19 +96,29 @@ const Header = () => {
 
     return (
         <Container>
-            {isAuth && <ExitButton onClick={() => {exitHandler()}}>Выйти</ExitButton>}
-            <NavButton onClick={() => {setIsOpen(!isOpen)}}>
+            {isAuth && <ExitButton onClick={() => {
+                exitHandler()
+            }}>Выйти</ExitButton>}
+            <NavButton onClick={() => {
+                setIsOpen(!isOpen)
+            }}>
                 <span>Навигация</span>
             </NavButton>
             <Menu isOpen={isOpen}>
                 <ul>
-                    {!isAuth && <li onClick={() => {navigate(LOGIN_ROUTE)}}>Логин</li>}
-                    {!isAuth && <li onClick={() => {navigate(REGISTRATION_ROUTE)}}>Регистрация</li>}
-                    {isAuth && <li onClick={() => {navigate(CHANGE_PASSWORD_ROUTE)}}>Смена пароля</li>}
+                    {!isAuth && <li onClick={() => {
+                        navigate(LOGIN_ROUTE)
+                    }}>Логин</li>}
+                    {!isAuth && <li onClick={() => {
+                        navigate(REGISTRATION_ROUTE)
+                    }}>Регистрация</li>}
+                    {isAuth && <li onClick={() => {
+                        navigate(CHANGE_PASSWORD_ROUTE)
+                    }}>Смена пароля</li>}
                 </ul>
             </Menu>
         </Container>
-    );
-};
+    )
+}
 
-export default Header;
+export default Header
